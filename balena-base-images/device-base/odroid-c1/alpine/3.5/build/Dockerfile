@@ -10,6 +10,11 @@ RUN apk add --update \
 		gnupg \
 	&& rm -rf /var/cache/apk/*
 
-RUN [ ! -d /.balena ] && mkdir /.balena; echo 'Here are a few details about this Docker image (For more information please visit https://www.balena.io/docs/reference/base-images/base-images/): \nArchitecture: ARM v7 \nOS: Alpine Linux 3.5 \nVariant: build variant \nDevice: ODroid C1 \nDevice-type:odroid-c1 \nDefault variable(s): UDEV=off \nExtra features: \n- Easy way to install packages with `install_packages <package-name>` command \n- Run anywhere with cross-build feature  (for ARM only)' > /.balena/image-info
+RUN [ ! -d /.balena ] && mkdir /.balena; echo $'Here are a few details about this Docker image (For more information please visit https://www.balena.io/docs/reference/base-images/base-images/): \nArchitecture: ARM v7 \nOS: Alpine Linux 3.5 \nVariant: build variant \nDevice: ODroid C1 \nDevice-type:odroid-c1 \nDefault variable(s): UDEV=off \nExtra features: \n- Easy way to install packages with `install_packages <package-name>` command \n- Run anywhere with cross-build feature  (for ARM only)' > /.balena/image-info
 
-ONBUILD RUN cat /.balena/image-info
+RUN echo $'#!/bin/bash\n\
+cat /.balena/image-info\n\
+busybox ln -sf /bin/busybox /bin/sh\n\
+/bin/sh "$@"' > /bin/sh-shim \
+	&& chmod +x /bin/sh-shim \
+	&& ln -f /bin/sh-shim /bin/sh

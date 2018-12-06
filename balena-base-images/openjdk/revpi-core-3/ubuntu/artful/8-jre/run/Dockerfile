@@ -58,4 +58,11 @@ CMD ["echo","'No CMD command was set in Dockerfile! Details about CMD command co
 
 RUN [ ! -d /.balena ] && mkdir /.balena; echo 'Here are a few details about this Docker image (For more information please visit https://www.balena.io/docs/reference/base-images/base-images/): \nArchitecture: ARM v7 \nOS: Ubuntu artful \nVariant: run variant \nDevice: Revolution Pi Core 3 \nDevice-type:revpi-core-3 \nDefault variable(s): UDEV=off \nThe following software stack is preinstalled: \nOpenJDK v8-jre \nExtra features: \n- Easy way to install packages with `install_packages <package-name>` command \n- Run anywhere with cross-build feature  (for ARM only)' > /.balena/image-info
 
-ONBUILD RUN cat /.balena/image-info
+RUN echo '#!/bin/sh.real\n\
+cat /.balena/image-info\n\
+rm -f /bin/sh\n\
+cp /bin/sh.real /bin/sh\n\
+/bin/sh "$@"' > /bin/sh-shim \
+	&& chmod +x /bin/sh-shim \
+	&& cp /bin/sh /bin/sh.real \
+	&& mv /bin/sh-shim /bin/sh

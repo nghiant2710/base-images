@@ -62,4 +62,11 @@ CMD ["echo","'No CMD command was set in Dockerfile! Details about CMD command co
 
 RUN [ ! -d /.balena ] && mkdir /.balena; echo 'Here are a few details about this Docker image (For more information please visit https://www.balena.io/docs/reference/base-images/base-images/): \nArchitecture: Intel 32-bit (x86) for Intel Quark \nOS: Debian Stretch \nVariant: run variant \nDevice: Siemens IOT2000 \nDevice-type:iot2000 \nDefault variable(s): UDEV=off \nThe following software stack is preinstalled: \nPython v2.7.15, Pip v10.0.1, Setuptools v39.1.0 \nExtra features: \n- Easy way to install packages with `install_packages <package-name>` command \n- Run anywhere with cross-build feature  (for ARM only)' > /.balena/image-info
 
-ONBUILD RUN cat /.balena/image-info
+RUN echo '#!/bin/sh.real\n\
+cat /.balena/image-info\n\
+rm -f /bin/sh\n\
+cp /bin/sh.real /bin/sh\n\
+/bin/sh "$@"' > /bin/sh-shim \
+	&& chmod +x /bin/sh-shim \
+	&& cp /bin/sh /bin/sh.real \
+	&& mv /bin/sh-shim /bin/sh

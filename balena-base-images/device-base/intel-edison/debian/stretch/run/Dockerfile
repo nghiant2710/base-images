@@ -65,4 +65,11 @@ RUN echo "/usr/local/lib/i386-linux-gnu/" >> /etc/ld.so.conf \
 
 RUN [ ! -d /.balena ] && mkdir /.balena; echo 'Here are a few details about this Docker image (For more information please visit https://www.balena.io/docs/reference/base-images/base-images/): \nArchitecture: Intel 32-bit (x86) \nOS: Debian Stretch \nVariant: run variant \nDevice: Intel Edison \nDevice-type:intel-edison \nDefault variable(s): UDEV=off \nExtra features: \n- Easy way to install packages with `install_packages <package-name>` command \n- Run anywhere with cross-build feature  (for ARM only)' > /.balena/image-info
 
-ONBUILD RUN cat /.balena/image-info
+RUN echo '#!/bin/sh.real\n\
+cat /.balena/image-info\n\
+rm -f /bin/sh\n\
+cp /bin/sh.real /bin/sh\n\
+/bin/sh "$@"' > /bin/sh-shim \
+	&& chmod +x /bin/sh-shim \
+	&& cp /bin/sh /bin/sh.real \
+	&& mv /bin/sh-shim /bin/sh
